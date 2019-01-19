@@ -7,6 +7,7 @@ import TextField from '@material-ui/core/TextField'
 import Fab from '@material-ui/core/Fab'
 
 import mammoth from 'mammoth'
+import CopyToClipboard from 'react-copy-to-clipboard'
 
 import './styles/App.css'
 
@@ -18,6 +19,10 @@ class App extends Component {
     const { template, letter } = this.state
 
     const keyWords = (template||'').match(/\b[A-Z_]{3,}\b/g)
+
+    const letterInProgress = Object.keys(this.state)
+      .filter(key => key.replace('_', '').toUpperCase() === key.replace('_', ''))
+      .reduce((buf, keyWord) => buf.replace(keyWord, this.state[keyWord]), template)
 
     return (
       <div className={template? 'App-2' : 'App'}>
@@ -37,27 +42,21 @@ class App extends Component {
               )
             }
 
-            <Fab
-              style={{
-                position: `fixed`,
-                right: 0,
-                bottom: 0,
-                margin: `1em`,
-              }}
-              color="primary"
-              aria-label="Copy"
-
-              onClick={e => this.setState({
-                letter: Object.keys(this.state)
-                  .filter(key => key.replace('_', '').toUpperCase() === key.replace('_', ''))
-                  .reduce(
-                    (letterInProgress, keyWord) => letterInProgress.replace(keyWord, this.state[keyWord]),
-                    template
-                  )
-              })}
-            >
-              <FileCopy />
-            </Fab>
+            <CopyToClipboard text={letterInProgress}>
+              <Fab
+                style={{
+                  position: `fixed`,
+                  right: 0,
+                  bottom: 0,
+                  margin: `1em`,
+                }}
+                color="primary"
+                aria-label="Copy"
+                onClick={e => this.setState({ letter: letterInProgress })}
+              >
+                <FileCopy />
+              </Fab>
+            </CopyToClipboard>
 
             <Dialog open={!!letter} onClose={() => {}}>
               <pre>
@@ -81,7 +80,7 @@ class App extends Component {
                 
                 const { value, messages } = await mammoth.extractRawText({ arrayBuffer })
                 if (messages && messages.length) console.warn(messages)
-                console.log(value)
+                // console.log(value)
 
                 this.setState({ template: value })
               }}
